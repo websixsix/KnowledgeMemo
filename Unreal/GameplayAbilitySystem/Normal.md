@@ -96,4 +96,6 @@ Server receives CallServerTryActivateAbility()
 
 
 ## 2023/3/8
-在Standalone的情况下，GamplayEffect中配置GameplayCue，GameplayCue触发时会跑两次OnActive和两次OnRemove。在打开ds的情况下是正常的，通过断点猜测Standalone时GAS内部的RPC导致多跑了一次。
+1. 在Standalone的情况下，GamplayEffect中配置GameplayCue，GameplayCue触发时会跑两次OnActive和两次OnRemove。在打开ds的情况下是正常的，通过断点猜测Standalone时GAS内部的RPC导致多跑了一次。
+2. Combined Tags就是显示Add和Remove的组合结果。
+3. 需要将Struct作为DataTable的结构使用时，Struct需要继承FTableRowBase。
