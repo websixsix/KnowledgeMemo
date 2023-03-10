@@ -69,23 +69,23 @@ GameplayAbility Trigger也可以在GameplayTag添加或删除时激活GameplayAb
 
 本地预测GameplayAbilities的激活序列过程：
 
-Owning client 调用TryActivateAbility()
-调用InternalTryActivateAbility()
-调用CanActivateAbility()检查GameplayTag、消耗、冷却等决定是否能够释放技能
-调用CallServerTryActivateAbility()并且传递生成好的Prediction Key
-调用CallActivateAbility()
+Owning client 调用`TryActivateAbility()`
+调用`InternalTryActivateAbility()`
+调用`CanActivateAbility()`检查GameplayTag、消耗、冷却等决定是否能够释放技能
+调用`CallServerTryActivateAbility()`并且传递生成好的Prediction Key
+调用`CallActivateAbility()`
 调用PreActivate()
 调用ActivateAbility() 最终施放技能
 Server receives CallServerTryActivateAbility()
 
-调用ServerTryActivateAbility()
-调用InternalServerTryActivateAbility()
-调用InternalTryActivateAbility()
-调用CanActivateAbility()
-调用ClientActivateAbilitySucceed()在服务器确定激活成功时更新ActivationInfo并且广播OnConfirmDelegate委托（这不同于输入确认）
-调用CallActivateAbility()
-调用PreActivate()
-调用ActivateAbility() 最终施放技能
+调用```ServerTryActivateAbility()```
+调用```InternalServerTryActivateAbility()```
+调用```InternalTryActivateAbility()```
+调用```CanActivateAbility()```
+调用```ClientActivateAbilitySucceed()```在服务器确定激活成功时更新ActivationInfo并且广播OnConfirmDelegate委托（这不同于输入确认）
+调用```CallActivateAbility()```
+调用```PreActivate()```
+调用```ActivateAbility()``` 最终施放技能
 如果服务器激活技能失败，将会调用ClientActivateAbilityFailed()并立即终止客户端的GameplayAbility并回退任何可预测的修改。
 
 ## 2023/3/2
@@ -99,3 +99,48 @@ Server receives CallServerTryActivateAbility()
 1. 在Standalone的情况下，GamplayEffect中配置GameplayCue，GameplayCue触发时会跑两次OnActive和两次OnRemove。在打开ds的情况下是正常的，通过断点猜测Standalone时GAS内部的RPC导致多跑了一次。
 2. Combined Tags就是显示Add和Remove的组合结果。
 3. 需要将Struct作为DataTable的结构使用时，Struct需要继承FTableRowBase。
+
+## 2023/3/9
+- 使用json可以简单的导入UE4变成Curve Table。每一个状态的数据即可以为一段json数据，这样所有的数据全部放在一个json里即可。
+
+格式为
+	
+		[
+			{
+				"Name":"Name1",
+				"1":10,
+				"2":20,
+				"3":30
+			}，
+			{
+				"Name":"Name2",
+				"1":40,
+				"2":50,
+				"3":60
+			}
+		]
+	
+- Curve Table数据表分为三类: Constant, Linear, Cubic。
+
+Constant的特点是：如果传入的Level没有对应值的话，则优先取前一个Level的值，如果没有则取后一个Level的值；
+
+Linear的特点是：如果传入的Level没有对应值的话，则会取前后的线性插值；
+
+Cubic的特点是：如果传入的Level没有对应值的话，则取三次插值。（没有试过）
+
+- `Meta = (EditCondition = “变量名”)`
+
+这里的变量名大多是布尔类型。用途是控制Detail面板上的变量能否修改。
+
+- 补充记载Gameplay Cue在GameplayEffect里的使用
+
+Gameplay Cue在GameplayEffect里有一个Display地方可以配置。需要配置GameplayCueTag即可。
+
+GameplayEffect为Instant和Periodic时只有static的GC可以生效。一般为一次性的效果，Static的GC只有OnExcute事件。
+GameplayEffect为Duration和Infinite时只有Actor的GC可以生效。一般为持续性的效果，Actor的GC由OnActive和OnRemove事件。
+
+### 待解决问题
+使用csv时导入UE4提示Too few Rows。感觉可能是csv设置问题？
+
+###已解决
+原因是csv不是utf-8的格式，需要把csv转成utf-8，但是转完以后会乱码，需要删完所有的数据以后重新填写，可以选择先备份一份。
